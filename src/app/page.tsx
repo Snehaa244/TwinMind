@@ -7,7 +7,7 @@ import { SuggestionsPanel } from '@/components/SuggestionsPanel';
 import { ChatPanel } from '@/components/ChatPanel';
 import { SettingsModal } from '@/components/SettingsModal';
 import { Suggestion, SuggestionBatch, ChatMessage, SessionData } from '@/lib/groq';
-import { Settings, Download } from 'lucide-react';
+import { Settings, Download, Trash2 } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { formatTime } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -104,6 +104,7 @@ export default function Home() {
           apiKey: settings.apiKey,
           model: settings.model,
           temperature: settings.temperature,
+          history: chatHistory.slice(-10),
         }),
       });
 
@@ -123,6 +124,17 @@ export default function Home() {
       console.error('Chat error', error);
     } finally {
       setIsChatLoading(false);
+    }
+  };
+
+  const handleClearSession = () => {
+    if (confirm('Are you sure you want to clear the entire session? This cannot be undone.')) {
+      setTranscript([]);
+      setSuggestionBatches([]);
+      setChatHistory([]);
+      if (isRecording) {
+        setIsRecording(false);
+      }
     }
   };
 
@@ -183,6 +195,17 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-3 md:gap-4">
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleClearSession}
+              disabled={transcript.length === 0 && suggestionBatches.length === 0 && chatHistory.length === 0}
+              className="flex items-center gap-2 px-4 py-2 text-xs md:text-sm font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-all border border-red-500/20 disabled:opacity-30"
+            >
+              <Trash2 size={16} />
+              <span className="hidden sm:inline">Clear Session</span>
+              <span className="sm:hidden">Clear</span>
+            </motion.button>
             <motion.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

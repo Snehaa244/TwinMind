@@ -23,6 +23,7 @@ export const MicRecorder: React.FC<MicRecorderProps> = ({ onTranscription, isRec
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const handleDataAvailable = (event: BlobEvent) => {
     if (event.data.size > 0) {
@@ -31,10 +32,7 @@ export const MicRecorder: React.FC<MicRecorderProps> = ({ onTranscription, isRec
   };
 
   const processAudio = async () => {
-    if (audioChunksRef.current.length === 0) {
-      alert("No audio data captured. Please check if your microphone is functioning.");
-      return;
-    }
+    if (audioChunksRef.current.length === 0) return;
 
     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
     audioChunksRef.current = [];
@@ -53,34 +51,15 @@ export const MicRecorder: React.FC<MicRecorderProps> = ({ onTranscription, isRec
       });
 
       const data = await response.json();
-      if (data.text) {
+      if (data.text && data.text.trim().length > 0) {
         onTranscription(data.text);
       } else if (data.error) {
-        alert(`Transcription Error: ${data.error}`);
-      } else {
-        alert('Empty transcription returned or audio rejected.');
+        console.error(`Transcription Error: ${data.error}`);
       }
     } catch (error: any) {
       console.error('Transcription failed', error);
-      alert('Transcription API call failed. Check your Groq Key and network connection.');
     } finally {
       setIsTranscribing(false);
-    }
-  };
-
-  const handleStop = async () => {
-    if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.onstop = async () => {
-             // Stop microphone tracks cleanly
-             const tracks = mediaRecorderRef.current?.stream.getTracks() || [];
-             tracks.forEach(track => track.stop());
-
-            await processAudio();
-            if (isRecording) {
-                startRecording();
-            }
-        };
-        mediaRecorderRef.current.stop();
     }
   };
 
@@ -92,18 +71,31 @@ export const MicRecorder: React.FC<MicRecorderProps> = ({ onTranscription, isRec
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      if (!streamRef.current) {
+        streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+      
+      const mediaRecorder = new MediaRecorder(streamRef.current);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = handleDataAvailable;
-      mediaRecorder.start(1000); // 1-second timeslices to ensure continuous flushing
+      
+      mediaRecorder.onstop = async () => {
+        await processAudio();
+        // If still recording, start a new chunk automatically
+        if (isRecording) {
+            startRecording();
+        }
+      };
 
+      mediaRecorder.start(1000);
+
+      // Rotate every 30 seconds
       intervalRef.current = setTimeout(() => {
-          if (isRecording) {
-              handleStop();
-          }
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            mediaRecorderRef.current.stop();
+        }
       }, 30000);
 
     } catch (err) {
@@ -112,30 +104,39 @@ export const MicRecorder: React.FC<MicRecorderProps> = ({ onTranscription, isRec
     }
   };
 
+  const stopEverything = () => {
+    if (intervalRef.current) clearTimeout(intervalRef.current);
+    
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        // Change onstop to just process and NOT restart
+        mediaRecorderRef.current.onstop = async () => {
+            await processAudio();
+        };
+        mediaRecorderRef.current.stop();
+    }
+
+    if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+    }
+  };
+
   useEffect(() => {
     if (isRecording) {
       startRecording();
     } else {
-      if (intervalRef.current) clearTimeout(intervalRef.current);
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          mediaRecorderRef.current.onstop = async () => {
-              // Stop microphone tracks cleanly
-              const tracks = mediaRecorderRef.current?.stream.getTracks() || [];
-              tracks.forEach(track => track.stop());
-              await processAudio();
-          };
-          mediaRecorderRef.current.stop();
-      }
+      stopEverything();
     }
     return () => {
-      if (intervalRef.current) clearTimeout(intervalRef.current);
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          const tracks = mediaRecorderRef.current.stream.getTracks() || [];
-          tracks.forEach(track => track.stop());
-          mediaRecorderRef.current.stop();
-      }
+      // Don't stop everything on every re-render, only if isRecording changes to false or on unmount
     };
   }, [isRecording]);
+
+  useEffect(() => {
+    return () => {
+        stopEverything();
+    };
+  }, []);
 
   return (
     <div className="glass-panel shrink-0 flex flex-col items-center gap-5 p-8 rounded-3xl relative overflow-hidden group">

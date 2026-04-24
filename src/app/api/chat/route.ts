@@ -3,7 +3,7 @@ import { getGroqClient } from '@/lib/groq';
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, fullTranscript, suggestion, prompt, apiKey, model, temperature } = await req.json();
+    const { message, fullTranscript, suggestion, prompt, apiKey, model, temperature, history } = await req.json();
 
     if (!apiKey) {
       return NextResponse.json({ error: 'Missing API key' }, { status: 400 });
@@ -11,17 +11,21 @@ export async function POST(req: NextRequest) {
 
     const groq = getGroqClient(apiKey);
     
-    let finalPrompt = prompt
+    let systemPrompt = prompt
       .replace('{{full_transcript}}', fullTranscript || 'No transcript available.')
       .replace('{{suggestion}}', suggestion || message);
 
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...(history || []).map((m: any) => ({
+        role: m.role,
+        content: m.content,
+      })),
+      { role: 'user', content: message }
+    ];
+
     const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'user',
-          content: finalPrompt,
-        },
-      ],
+      messages,
       model: model || 'llama-3.3-70b-versatile',
       temperature: temperature ?? 0.7,
     });
