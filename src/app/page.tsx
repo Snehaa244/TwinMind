@@ -57,7 +57,7 @@ export default function Home() {
       });
 
       const data = await response.json();
-      if (data.suggestions && data.suggestions.length > 0) {
+      if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
         const newBatch: SuggestionBatch = {
           id: Math.random().toString(36).substring(7),
           timestamp: formatTime(new Date()),

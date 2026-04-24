@@ -79,7 +79,7 @@ export const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ batches, onS
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                   </div>
                   <div className="grid gap-3">
-                    {batch.suggestions.map((suggestion, idx) => (
+                    {Array.isArray(batch.suggestions) && batch.suggestions.map((suggestion, idx) => (
                       <SuggestionCard 
                         key={idx} 
                         suggestion={suggestion} 

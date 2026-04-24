@@ -27,12 +27,21 @@ export async function POST(req: NextRequest) {
     const content = completion.choices[0].message.content;
     let suggestions = JSON.parse(content || '[]');
     
-    // Ensure it's an array if the prompt returns an object with a key
-    if (!Array.isArray(suggestions) && typeof suggestions === 'object') {
-      suggestions = suggestions.suggestions || Object.values(suggestions)[0] || [];
+    // Normalize suggestions to always be an array
+    if (!Array.isArray(suggestions)) {
+      if (typeof suggestions === 'object' && suggestions !== null) {
+        // Try to find an array property
+        const arrayProp = Object.values(suggestions).find(val => Array.isArray(val));
+        suggestions = arrayProp || [];
+      } else {
+        suggestions = [];
+      }
     }
 
-    return NextResponse.json({ suggestions });
+    // Filter to ensure all items have the required structure
+    const validSuggestions = (suggestions as any[]).filter(s => s && typeof s.text === 'string');
+
+    return NextResponse.json({ suggestions: validSuggestions });
   } catch (error: any) {
     console.error('Suggestions error:', error);
     return NextResponse.json({ error: error.message || 'Failed to generate suggestions' }, { status: 500 });
