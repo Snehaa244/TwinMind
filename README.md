@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 TwinMind: Live Edge AI Copilot
 
-## Getting Started
+TwinMind is a premium, real-time AI assistant designed to act as your "second brain" during meetings, interviews, and live conversations. It listens, transcribes, and provides proactive suggestions and deep-context chat capabilities in real-time.
 
-First, run the development server:
+![TwinMind Banner](https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=2070&auto=format&fit=crop)
 
+---
+
+## 🎯 The Task
+The goal was to build a low-latency, context-aware AI companion that could seamlessly integrate into a user's workflow without being intrusive. The application needed to handle continuous audio streams, convert them to text accurately, and use that text to provide meaningful, real-time insights.
+
+## 🚀 The Problem It Solves
+Modern meetings are fast-paced and often overwhelming.
+- **Context Loss**: Hard to remember everything said 10 minutes ago.
+- **Cognitive Load**: Hard to think of the next best question while actively listening.
+- **Action Items**: Important tasks often get buried in the conversation.
+- **Delayed Insights**: Most AI tools analyze meetings *after* they end; TwinMind does it *while* they happen.
+
+## 🛠️ How It Was Built
+TwinMind was architected for speed and aesthetics using a modern full-stack approach:
+
+### 1. The Engine (Next.js & Groq)
+- **High-Speed Transcription**: Leverages **Groq's Whisper-large-v3** implementation for near-instant speech-to-text.
+- **Contextual Intelligence**: Uses **Llama-3-70b/Mixtral** models via Groq SDK to analyze transcripts and generate proactive suggestions.
+- **State Management**: Implemented with React Context API and custom hooks for smooth, non-flickering audio processing.
+
+### 2. The Experience (UI/UX)
+- **Fluid Design**: Built with **Tailwind CSS** and **Framer Motion** for a premium "glassmorphism" aesthetic with dynamic glowing orbs and micro-animations.
+- **Continuous Recording**: Custom logic that chunks audio into 30-second segments for reliable, long-running session stability.
+- **Responsive Layout**: A 3-column dashboard that fits perfectly on all screen sizes.
+
+### 3. Key Features
+- 🎙️ **Live Transcription**: Real-time audio capture with timestamped logs.
+- 💡 **Proactive Suggestions**: Intelligent prompts generated based on the last few minutes of conversation.
+- 💬 **Context-Aware Chat**: Ask questions like "What was the budget mentioned?" or "Summarize our progress so far."
+- 📥 **Session Export**: Save your entire session (transcript + chat + suggestions) as a structured JSON file.
+
+---
+
+## 🛠️ Tech Stack
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **AI Integration**: [Groq SDK](https://groq.com/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+
+---
+
+## 🏃 Getting Started
+
+### 1. Prerequisites
+- A Groq API Key (Get it at [console.groq.com](https://console.groq.com/))
+
+### 2. Installation
 ```bash
+# Clone the repository
+git clone https://github.com/Snehaa244/TwinMind.git
+
+# Install dependencies
+npm install
+
+# Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Setup
+Open the app, click the **Settings** icon (top right), and paste your **Groq API Key**. You're ready to go!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ✨ Developed with ❤️ by
+**Sneha Parmar**
+*Crafting the future of intelligent human-AI collaboration.*
